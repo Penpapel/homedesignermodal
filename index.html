@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Treemap App – Full Compilation</title>
+  <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: sans-serif;
+      background: #ffffff;
+      overflow-x: hidden;
+    }
+    #treemap {
+      width: 100vw;
+      height: calc(100vh - 260px);
+    }
+    #controls {
+      width: 100vw;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 1rem;
+      padding: 1rem;
+      background: #f7f7f7;
+      box-shadow: inset 0 1px 4px rgba(0,0,0,0.05);
+    }
+    #controls label {
+      display: block;
+      margin: 0.5rem 0;
+    }
+    #controls input, #controls select {
+      width: 100%;
+      padding: 0.25rem;
+    }
+  </style>
+</head>
+<body>
+  <div id="treemap"></div>
+  <div id="controls" style="width: 100vw; display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-start; padding: 1rem; background: #f7f7f7; box-shadow: inset 0 1px 4px rgba(0,0,0,0.05);">
+    <h3>Treemap Controls</h3>
+    <label>Mode:
+      <select id="mode">
+        <option value="developer">Developer</option>
+        <option value="builder">Builder</option>
+        <option value="designer">Designer</option>
+      </select>
+    </label>
+    <label>Width:<input type="range" id="width" min="300" max="1600" value="1000"></label>
+    <label>Height:<input type="range" id="height" min="300" max="1000" value="600"></label>
+    <label>Font Size:<input type="range" id="fontSize" min="8" max="24" value="14"></label>
+    <label>Padding:<input type="range" id="padding" min="0" max="20" value="5"></label>
+    <label>Corner Radius:<input type="range" id="radius" min="0" max="20" value="8"></label>
+    <label>Max Depth:<input type="range" id="depth" min="1" max="5" value="3"></label>
+    <label>Layout:
+      <select id="layout">
+        <option value="squarify">Squarify</option>
+        <option value="binary">Slice & Dice Vertical</option>
+        <option value="slice">Slice & Dice Horizontal</option>
+      </select>
+    </label>
+    <button id="colorizeToggle">Toggle Colorize</button>
+  </div>
+
+  <script>
+    let colorized = true;
+
+    function generateTrace(mode) {
+      const settings = {
+        fontSize: parseInt(document.getElementById('fontSize').value),
+        padding: parseInt(document.getElementById('padding').value),
+        radius: parseInt(document.getElementById('radius').value),
+        depth: parseInt(document.getElementById('depth').value),
+        layout: document.getElementById('layout').value
+      };
+
+      let labels = [], parents = [], values = [], colors = [];
+
+      if (mode === 'developer') {
+        labels = [
+          'Community',
+          'Lots & Homes', 'Lot 1', 'Lot 2', 'Lot 3',
+          'Infrastructure', 'Roads', 'Power Grid', 'Water Pipes',
+          'Amenities', 'Park', 'Pool', 'Clubhouse'
+        ];
+        parents = [
+          '',
+          'Community', 'Lots & Homes', 'Lots & Homes', 'Lots & Homes',
+          'Community', 'Infrastructure', 'Infrastructure', 'Infrastructure',
+          'Community', 'Amenities', 'Amenities', 'Amenities'
+        ];
+        values = [
+          100,
+          60, 20, 20, 20,
+          25, 10, 8, 7,
+          15, 5, 5, 5
+        ];
+      }
+      else if (mode === 'builder') {
+        labels = [
+          'Lot A', 'House A',
+          'Foundation', 'Slab', 'Footings',
+          'Framing', 'Beams', 'Joists',
+          'Roof', 'Trusses', 'Shingles',
+          'Interior', 'Walls', 'Floors', 'Ceiling',
+          'MEP', 'HVAC', 'Plumbing', 'Electrical'
+        ];
+        parents = [
+          '', 'Lot A',
+          'House A', 'Foundation', 'Foundation',
+          'House A', 'Framing', 'Framing',
+          'House A', 'Roof', 'Roof',
+          'House A', 'Interior', 'Interior', 'Interior',
+          'House A', 'MEP', 'MEP', 'MEP'
+        ];
+        values = [
+          100, 100,
+          15, 10, 5,
+          20, 10, 10,
+          20, 10, 10,
+          25, 10, 10, 5,
+          20, 7, 7, 6
+        ];
+      }
+      else if (mode === 'designer') {
+        labels = [
+          'My Home',
+          'Living Room', 'Kitchen', 'Bedroom 1', 'Bedroom 2', 'Bathroom',
+          'Closet', 'Pantry', 'Laundry',
+          'Bedroom 1 Closet', 'Bedroom 2 Closet',
+          'Master Bath', 'Shower', 'Sink',
+          'Garage', 'Dining Room'
+        ];
+        parents = [
+          '',
+          'My Home', 'My Home', 'My Home', 'My Home', 'My Home',
+          'My Home', 'Kitchen', 'My Home',
+          'Bedroom 1', 'Bedroom 2',
+          'Bathroom', 'Master Bath', 'Master Bath',
+          'My Home', 'My Home'
+        ];
+        values = [
+          100,
+          20, 15, 12, 12, 8,
+          5, 3, 5,
+          2, 2,
+          5, 2, 3,
+          8, 3
+        ];
+      }
+
+      const baseColors = colorized
+        ? undefined
+        : labels.map(() => '#ffffff');
+
+      return {
+        type: 'treemap',
+        labels: labels,
+        parents: parents,
+        values: values,
+        marker: {
+          colors: baseColors,
+          line: { width: 1, color: '#000' },
+          cornerradius: settings.radius
+        },
+        textinfo: 'label+value+percent parent',
+        textfont: { size: settings.fontSize, color: '#000000' },
+        branchvalues: 'total',
+        maxdepth: settings.depth,
+        tiling: { pad: settings.padding, packing: settings.layout }
+      };
+    }
+
+    function drawTreemap() {
+      const width = document.getElementById('width').value;
+      const height = document.getElementById('height').value;
+      const mode = document.getElementById('mode').value;
+
+      const data = [generateTrace(mode)];
+
+      Plotly.newPlot('treemap', data, {
+        margin: { t: 30, l: 0, r: 0, b: 0 },
+        width: parseInt(width),
+        height: parseInt(height),
+        paper_bgcolor: '#ffffff',
+        plot_bgcolor: '#ffffff'
+      }, { displaylogo: false, responsive: true });
+    }
+
+    document.querySelectorAll('input, select').forEach(el => {
+      el.addEventListener('input', drawTreemap);
+    });
+
+    document.getElementById('colorizeToggle').addEventListener('click', () => {
+      colorized = !colorized;
+      drawTreemap();
+    });
+
+    drawTreemap();
+  </script>
+</body>
+</html>
