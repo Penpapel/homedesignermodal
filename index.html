@@ -36,6 +36,23 @@
       width: 100%;
       padding: 0.25rem;
     }
+      @media screen and (max-width: 768px) {
+      #treemap {
+        width: 100vw;
+        height: 60vh;
+      }
+      #controls {
+        width: 100vw;
+        flex-direction: column;
+        align-items: center;
+        font-size: 0.9rem;
+        padding: 1rem 0.5rem;
+      }
+      #controls label, #controls button {
+        width: 90%;
+        margin: 0.25rem auto;
+      }
+    }
   </style>
 </head>
 <body>
